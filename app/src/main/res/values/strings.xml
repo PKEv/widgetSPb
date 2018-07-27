@@ -4,4 +4,8 @@
     <string name="widget_text">Text in widget</string>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
+
+    <string name="ok">Ok</string>
+    <string name="title_config">Type your id:</string>
+
 </resources>

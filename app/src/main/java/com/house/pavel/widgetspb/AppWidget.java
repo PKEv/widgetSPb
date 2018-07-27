@@ -89,8 +89,8 @@ public class AppWidget extends AppWidgetProvider {
             RemoteViews remoteViews;
             ComponentName watchWidget;
 
-            remoteViews = new RemoteViews(context.getPackageName(), R.layout.btcwidget);
-            watchWidget = new ComponentName(context, BTCwidget.class);
+            remoteViews = new RemoteViews(context.getPackageName(), R.layout.app_widget);
+            watchWidget = new ComponentName(context, AppWidget.class);
 
             remoteViews.setTextViewText(R.id.appwidget_text, WAITING_MESSAGE);
 
