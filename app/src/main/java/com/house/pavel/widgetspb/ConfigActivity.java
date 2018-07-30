@@ -49,16 +49,16 @@ public class ConfigActivity extends Activity {
     }
 
     public void onClick(View v) {
-        int color = Color.RED;
+        // int color = Color.RED;
         EditText etText = (EditText) findViewById(R.id.etText);
 
         // Записываем значения с экрана в Preferences
         SharedPreferences sp = getSharedPreferences(WIDGET_PREF, MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
-        editor.putString(WIDGET_TEXT + widgetID, etText.getText()
-                .toString());
-        editor.putInt(WIDGET_COLOR + widgetID, color);
+        editor.putString(WIDGET_TEXT + widgetID, etText.getText().toString());
+        // editor.putInt(WIDGET_COLOR + widgetID, color);
         editor.commit();
+        Log.d(LOG_TAG, "Congif get text " + etText.getText().toString());
 
         // положительный ответ
         setResult(RESULT_OK, resultValue);
