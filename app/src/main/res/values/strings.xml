@@ -7,5 +7,6 @@
 
     <string name="ok">Ok</string>
     <string name="title_config">Type your id:</string>
+    <string name="spb_id">12345678</string>
 
 </resources>

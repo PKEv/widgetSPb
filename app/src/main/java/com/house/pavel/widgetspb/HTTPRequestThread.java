@@ -7,14 +7,19 @@ import java.net.URL;
 import java.util.Calendar;
 
 class HTTPRequestThread extends Thread{
-    //private static final String urlString = "https://btc-e.nz/api/3/ticker/btc_usd";
-    private static final String urlString = "http://gorod.gov.spb.ru/public_api/v2/stats/problems/graph_data/?district=32";
+    // private static final String urlString = "https://btc-e.nz/api/3/ticker/btc_usd";
+    // private static final String urlString = "http://gorod.gov.spb.ru/public_api/v2/stats/problems/graph_data/?district=32";
+    private static final String urlString = "http://gorod.gov.spb.ru/accounts/";
 
+    HTTPRequestThread(String ids) {
+        id = ids;
+    }
     String getInfoString() {
         return output;
     }
 
     private String output = "";
+    private String id = "";
 
     private void requestPrice() {
 
