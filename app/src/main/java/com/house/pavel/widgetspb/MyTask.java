@@ -39,7 +39,10 @@ public class MyTask extends Thread {
 
         //Если всё считалось, что вытаскиваем из считанного html документа заголовок
         if (doc!=null) {
-            title = doc.getElementsByClass("problem-counters.problem-counters-posted").get(0).getElementsByClass("num").get(0).text();
+            // добавить чтение имени пользователя
+            title = doc.getElementsByClass("num").get(0).text().replaceAll("\\s","");
+            title += "/" + doc.getElementsByClass("num").get(1).text().replaceAll("\\s","");
+            title += " ";
             //title = doc.title();
         }
         else
