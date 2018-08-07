@@ -56,7 +56,7 @@ public class ConfigActivity extends Activity {
         // Записываем значения с экрана в Preferences
         SharedPreferences sp = getSharedPreferences(WIDGET_PREF, MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
-        editor.putString(WIDGET_TEXT + widgetID, etText.getText().toString());
+        //editor.putString(WIDGET_TEXT + widgetID, etText.getText().toString());
         editor.putString(ID_PREF, etText.getText().toString());
         // editor.putInt(WIDGET_COLOR + widgetID, color);
         editor.commit();

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.UnknownHostException;
 
 public class MyTask extends Thread {
     String title;//Тут храним значение заголовка сайта
@@ -46,13 +47,16 @@ public class MyTask extends Thread {
             //title = doc.title();
         }
         else
-            title = "Ошибка";
+            title = "";
+
 
     }
 
     @Override
     public void run() {
-        request();
+            request();
+
     }
+
 
 }
