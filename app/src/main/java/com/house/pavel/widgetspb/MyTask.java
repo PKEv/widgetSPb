@@ -3,6 +3,9 @@ package com.house.pavel.widgetspb;
 
 
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -30,12 +33,12 @@ public class MyTask extends Thread {
 
     private void request() {
         Document doc = null;//Здесь хранится будет разобранный html документ
+
         try {
-            //Считываем заглавную страницу http://harrix.org
             doc = Jsoup.connect(urlString + id).get();
         } catch (IOException e) {
-            //Если не получилось считать
             e.printStackTrace();
+            doc = null;
         }
 
         //Если всё считалось, что вытаскиваем из считанного html документа заголовок
@@ -44,12 +47,9 @@ public class MyTask extends Thread {
             title = doc.getElementsByClass("num").get(0).text().replaceAll("\\s","");
             title += "/" + doc.getElementsByClass("num").get(1).text().replaceAll("\\s","");
             title += " ";
-            //title = doc.title();
         }
         else
             title = "";
-
-
     }
 
     @Override
