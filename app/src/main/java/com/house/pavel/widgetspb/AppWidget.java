@@ -7,6 +7,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,8 +24,9 @@ public class AppWidget extends AppWidgetProvider {
     final static String LOG_TAG = "myLogs";
 
     private static final String SYNC_CLICKED    = "ospb_update_action";
-    private static final String WAITING_MESSAGE = "Wait...";
-    private static final String ERROR_MESSAGE = "ERROR!";
+    private static final String SYNC_OPEN    = "ospb_open_action";
+    private static final String WAITING_MESSAGE = "Ждите..";
+    private static final String ERROR_MESSAGE = "Ошибка!";
     private static final String APPPackageName = "ru.spb.iac.ourspb";
     public static final int httpsDelayMs = 300;
     //private String ID    = "123123123";
@@ -31,16 +34,10 @@ public class AppWidget extends AppWidgetProvider {
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, SharedPreferences sp,
                                 int appWidgetId) {
-
-
-        // Читаем параметры Preferences
-        //String widgetText = sp.getString(ConfigActivity.WIDGET_TEXT + appWidgetId, null);
-        String spb_id = sp.getString(ConfigActivity.ID_PREF + appWidgetId, null);
-        //Log.d(LOG_TAG, "Get text to widget: " + widgetText);
+        // Read data from Preferences
+        String spb_id = sp.getString(ConfigActivity.ID_PREF, null);
         if (spb_id == null) return;
-        //int widgetColor = sp.getInt(ConfigActivity.WIDGET_COLOR + widgetID, 0);
 
-        //CharSequence widgetText = context.getString(R.string.appwidget_text);
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
         views.setTextViewText(R.id.appwidget_text, WAITING_MESSAGE );
@@ -50,8 +47,7 @@ public class AppWidget extends AppWidgetProvider {
 
         String output;
 
-        //запускаем отдельный поток для получения данных с сайта биржи
-        //в основном потоке делать запрос нельзя - выбросит исключение
+        //create thread for get data from site
         MyTask thread = new MyTask(spb_id);
         thread.start();
         try {
@@ -66,8 +62,8 @@ public class AppWidget extends AppWidgetProvider {
         } catch (Exception e) {
             output = e.toString();
         }
-        //output += spb_id;
-        //выводим в виджет результат
+
+        //write to widget
         views.setTextViewText(R.id.appwidget_text, output);
 
         // Instruct the widget manager to update the widget
@@ -91,7 +87,9 @@ public class AppWidget extends AppWidgetProvider {
 
 
         //при клике на виджет в систему отсылается вот такой интент, описание метода ниже
-        remoteViews.setOnClickPendingIntent(R.id.appwidget_text,   getPendingSelfIntent(context, SYNC_CLICKED));
+        remoteViews.setOnClickPendingIntent(R.id.appwidget_text_upd,   getPendingSelfIntent(context, SYNC_CLICKED));
+
+        remoteViews.setOnClickPendingIntent(R.id.appwidget_text,   getPendingSelfIntent(context, SYNC_OPEN));
 
         appWidgetManager.updateAppWidget(watchWidget, remoteViews);
 
@@ -99,7 +97,19 @@ public class AppWidget extends AppWidgetProvider {
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, sp, appWidgetId);
         }
+    }
 
+    //check internet connection
+    public static boolean isOnline(Context context)
+    {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        if (netInfo != null && netInfo.isConnectedOrConnecting())
+        {
+            return true;
+        }
+        return false;
     }
 
     //этот метод ловит интенты, срабатывает когда интент создан нажатием на виджет и
@@ -109,6 +119,13 @@ public class AppWidget extends AppWidgetProvider {
 
         super.onReceive(context, intent);
 
+        //check internet connection before
+        if ( !isOnline(context) )
+        {
+            return;
+        }
+
+        //filtering events
         if (SYNC_CLICKED.equals(intent.getAction())) {
 
                 AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
@@ -158,33 +175,34 @@ public class AppWidget extends AppWidgetProvider {
                 //widget manager to update the widget
                 appWidgetManager.updateAppWidget(watchWidget, remoteViews);
 
-                //запускаем основное приложение
-                Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(APPPackageName);
-                if (launchIntent != null) {
-                    context.startActivity(launchIntent);//null pointer check in case package name was not found
+
+        }
+        if (SYNC_OPEN.equals(intent.getAction())) {
+            //запускаем основное приложение
+            Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(APPPackageName);
+            if (launchIntent != null) {
+                context.startActivity(launchIntent);//null pointer check in case package name was not found
+            }
+            else {
+                try {
+
+                    intent = new Intent(Intent.ACTION_VIEW);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.setData(Uri.parse("market://details?id=" + APPPackageName));
+
+                    context.startActivity(intent);
+
+                } catch (android.content.ActivityNotFoundException anfe) {
+
+                    intent = new Intent(Intent.ACTION_VIEW);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.setData(Uri.parse("http://play.google.com/store/apps/details?id=" + APPPackageName));
+                    context.startActivity(intent);
+
                 }
-                else {
-                    try {
-
-                        intent = new Intent(Intent.ACTION_VIEW);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        intent.setData(Uri.parse("market://details?id=" + APPPackageName));
-
-                        context.startActivity(intent);
-
-                    } catch (android.content.ActivityNotFoundException anfe) {
-
-                        intent = new Intent(Intent.ACTION_VIEW);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        intent.setData(Uri.parse("http://play.google.com/store/apps/details?id=" + APPPackageName));
-                        context.startActivity(intent);
-
-                    }
-                }
+            }
         }
     }
-
-
 
     //создание интента
     protected PendingIntent getPendingSelfIntent(Context context, String action) {
