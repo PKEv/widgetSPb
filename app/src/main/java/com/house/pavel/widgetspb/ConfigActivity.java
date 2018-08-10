@@ -57,13 +57,17 @@ public class ConfigActivity extends Activity {
         SharedPreferences sp = getSharedPreferences(WIDGET_PREF, MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         //editor.putString(WIDGET_TEXT + widgetID, etText.getText().toString());
-        editor.putString(ID_PREF, etText.getText().toString());
+        editor.putString(ID_PREF + widgetID, etText.getText().toString());
         // editor.putInt(WIDGET_COLOR + widgetID, color);
         editor.commit();
         Log.d(LOG_TAG, "Congif get text " + etText.getText().toString());
 
         // положительный ответ
         setResult(RESULT_OK, resultValue);
+
+
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
+        AppWidget.updateAppWidget(this, appWidgetManager, sp, widgetID);
 
         Log.d(LOG_TAG, "finish config " + widgetID);
         finish();

@@ -32,11 +32,15 @@ public class AppWidget extends AppWidgetProvider {
     //private String ID    = "123123123";
 
 
-    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, SharedPreferences sp,
+     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, SharedPreferences sp,
                                 int appWidgetId) {
+        Log.d(LOG_TAG, "updateAppWidget4");
+
         // Read data from Preferences
-        String spb_id = sp.getString(ConfigActivity.ID_PREF, null);
+        String spb_id = sp.getString(ConfigActivity.ID_PREF + appWidgetId, null);
         if (spb_id == null) return;
+
+        Log.d(LOG_TAG, "spb_id = " + spb_id);
 
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
@@ -66,6 +70,13 @@ public class AppWidget extends AppWidgetProvider {
         //write to widget
         views.setTextViewText(R.id.appwidget_text, output);
 
+         Log.d(LOG_TAG, "appWidgetId = " + appWidgetId);
+
+        //при клике на виджет в систему отсылается вот такой интент, описание метода ниже
+        views.setOnClickPendingIntent(R.id.appwidget_text_upd,   getPendingSelfIntent(context, SYNC_CLICKED, appWidgetId));
+
+        views.setOnClickPendingIntent(R.id.textTitle,   getPendingSelfIntent(context, SYNC_OPEN, appWidgetId));
+
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
@@ -73,23 +84,17 @@ public class AppWidget extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
+        Log.d(LOG_TAG, "onUpdate");
         RemoteViews remoteViews;
         ComponentName watchWidget;
 
         remoteViews = new RemoteViews(context.getPackageName(), R.layout.app_widget);
         watchWidget = new ComponentName(context, AppWidget.class);
 
+        //remoteViews.setOnClickPendingIntent(R.id.textTitle,   getPendingSelfIntent(context, SYNC_OPEN, 0));
+
         SharedPreferences sp = context.getSharedPreferences(
                 ConfigActivity.WIDGET_PREF, Context.MODE_PRIVATE);
-        for (int id : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, sp, id);
-        }
-
-
-        //при клике на виджет в систему отсылается вот такой интент, описание метода ниже
-        remoteViews.setOnClickPendingIntent(R.id.appwidget_text_upd,   getPendingSelfIntent(context, SYNC_CLICKED));
-
-        remoteViews.setOnClickPendingIntent(R.id.appwidget_text,   getPendingSelfIntent(context, SYNC_OPEN));
 
         appWidgetManager.updateAppWidget(watchWidget, remoteViews);
 
@@ -119,14 +124,31 @@ public class AppWidget extends AppWidgetProvider {
 
         super.onReceive(context, intent);
 
+
         //check internet connection before
         if ( !isOnline(context) )
         {
+            Log.d(LOG_TAG, "offLine!");
             return;
         }
 
+        Log.d(LOG_TAG, "onReceive");
+
         //filtering events
         if (SYNC_CLICKED.equals(intent.getAction())) {
+                // извлекаем ID экземпляра
+                int widgetID = AppWidgetManager.INVALID_APPWIDGET_ID;
+                Log.d(LOG_TAG, "SYNC_CLICKED");
+
+                Bundle extras = intent.getExtras();
+                if (extras != null) {
+                    widgetID = extras.getInt(
+                            AppWidgetManager.EXTRA_APPWIDGET_ID,
+                            AppWidgetManager.INVALID_APPWIDGET_ID);
+
+                }
+                Log.d(LOG_TAG, "widgetID = " + Integer.toString(widgetID));
+
 
                 AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 
@@ -143,7 +165,9 @@ public class AppWidget extends AppWidgetProvider {
 
                 SharedPreferences sp = context.getSharedPreferences(
                         ConfigActivity.WIDGET_PREF, Context.MODE_PRIVATE);
-                String spb_id = sp.getString(ConfigActivity.ID_PREF, null);
+                String spb_id = sp.getString(ConfigActivity.ID_PREF + widgetID, null);
+
+                Log.d(LOG_TAG, "spb_id = " + spb_id);
 
                 String output;
                 MyTask thread = new MyTask(spb_id);
@@ -156,7 +180,6 @@ public class AppWidget extends AppWidgetProvider {
                             break;
                         }
                     }
-
                 } catch (Exception e) {
                     output = e.toString();
 
@@ -168,15 +191,12 @@ public class AppWidget extends AppWidgetProvider {
                     appWidgetManager.updateAppWidget(watchWidget, remoteViews);
                     return;
                 }
-                //output += spb_id;
-
                 //Обновляем экран с полученными данными
                 remoteViews.setTextViewText(R.id.appwidget_text, output);
                 //widget manager to update the widget
                 appWidgetManager.updateAppWidget(watchWidget, remoteViews);
-
-
         }
+
         if (SYNC_OPEN.equals(intent.getAction())) {
             //запускаем основное приложение
             Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(APPPackageName);
@@ -205,8 +225,9 @@ public class AppWidget extends AppWidgetProvider {
     }
 
     //создание интента
-    protected PendingIntent getPendingSelfIntent(Context context, String action) {
-        Intent intent = new Intent(context, getClass());
+    static protected PendingIntent getPendingSelfIntent(Context context, String action, int id) {
+        Intent intent = new Intent(context, AppWidget.class);
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id);
         intent.setAction(action);
         return PendingIntent.getBroadcast(context, 0, intent, 0);
     }
@@ -214,24 +235,26 @@ public class AppWidget extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         // Enter relevant functionality for when the first widget is created
+        Log.d(LOG_TAG, "onEnabled");
     }
 
     @Override
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
+        Log.d(LOG_TAG, "onDisabled");
     }
 
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
-        //Log.d(LOG_TAG, "onDeleted " + Arrays.toString(appWidgetIds));
+        Log.d(LOG_TAG, "onDeleted " + Arrays.toString(appWidgetIds));
 
         // Удаляем Preferences
         SharedPreferences.Editor editor = context.getSharedPreferences(
                 ConfigActivity.WIDGET_PREF, Context.MODE_PRIVATE).edit();
         for (int widgetID : appWidgetIds) {
             //editor.remove(ConfigActivity.WIDGET_TEXT + widgetID);
-            editor.remove(ConfigActivity.ID_PREF);
+            editor.remove(ConfigActivity.ID_PREF + widgetID);
         }
         editor.commit();
     }

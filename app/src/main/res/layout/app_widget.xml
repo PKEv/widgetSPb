@@ -11,18 +11,17 @@
 
     android:orientation="vertical">
 
-        <TextView
-            android:layout_gravity="center"
-            android:id="@+id/textView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Твой Питер"
-            android:textAlignment="center"
-            android:textStyle="bold"
-            android:textSize="12sp"
-            android:layout_margin="2dp"
-            android:textColor="#ffffff"
-             />
+    <TextView
+        android:id="@+id/textTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="2dp"
+        android:text="Твой Питер"
+        android:textAlignment="center"
+        android:textColor="#ffffff"
+        android:textSize="12sp"
+        android:textStyle="bold" />
 
         <TextView
             android:id="@+id/appwidget_text"
@@ -36,6 +35,18 @@
             android:textColor="#ffffff"
             android:textSize="10sp"
             android:textStyle="bold|italic" />
+
+        <TextView
+            android:id="@+id/appwidget_text_upd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textAlignment="center"
+            android:contentDescription="@string/updateStr"
+            android:text="@string/updateStr"
+            android:textColor="#ffffff"
+            android:textSize="8sp"
+            android:textStyle="italic" />
 
 
 

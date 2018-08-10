@@ -17,13 +17,16 @@
         android:layout_height="wrap_content">
 
     </RadioGroup>
+
     <EditText
         android:id="@+id/etText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10">
-        <requestFocus>
-        </requestFocus>
+        android:digits="0123456789"
+        android:ems="10"
+        android:inputType="number">
+
+        <requestFocus></requestFocus>
     </EditText>
 
     <Button
