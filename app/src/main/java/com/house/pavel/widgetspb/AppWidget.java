@@ -32,10 +32,11 @@ public class AppWidget extends AppWidgetProvider {
     //private String ID    = "123123123";
 
 
-     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, SharedPreferences sp,
-                                int appWidgetId) {
+     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         Log.d(LOG_TAG, "updateAppWidget4");
 
+         SharedPreferences sp = context.getSharedPreferences(
+                 ConfigActivity.WIDGET_PREF, Context.MODE_PRIVATE);
         // Read data from Preferences
         String spb_id = sp.getString(ConfigActivity.ID_PREF + appWidgetId, null);
         if (spb_id == null) return;
@@ -49,26 +50,47 @@ public class AppWidget extends AppWidgetProvider {
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
 
-        String output;
+        String output = "-/-";
 
-        //create thread for get data from site
-        MyTask thread = new MyTask(spb_id);
-        thread.start();
-        try {
-            while (true) {
-                Thread.sleep(300);
-                if(!thread.isAlive()) {
-                    output = thread.getInfoString();
-                    break;
-                }
-            }
 
-        } catch (Exception e) {
-            output = e.toString();
-        }
+         //check internet connection before
+         if ( !isOnline(context) )
+         {
+             Log.d(LOG_TAG, "offLine!");
+             return;
+         }
+         else {
+             //create thread for get data from site
+             MyTask thread = new MyTask(spb_id);
+             thread.start();
+             try {
+                 while (true) {
+                     Thread.sleep(300);
+                     if (!thread.isAlive()) {
+                         output = thread.getInfoString();
+                         break;
+                     }
+                 }
+
+             } catch (Exception e) {
+                 output = e.toString();
+             }
+         }
+
+
+         // в случае отсутствия связи
+         if (!output.isEmpty()) {
+             SharedPreferences.Editor editor = sp.edit();
+             editor.putString(ConfigActivity.WIDGET_TEXT + appWidgetId, output);
+             editor.commit();
+         }
 
         //write to widget
-        views.setTextViewText(R.id.appwidget_text, output);
+       //
+         output = sp.getString(ConfigActivity.WIDGET_TEXT + appWidgetId, null);
+         views.setTextViewText(R.id.appwidget_text, output);
+         Log.d(LOG_TAG, "Write to sp:" + ConfigActivity.WIDGET_TEXT + Integer.toString(appWidgetId) + " =  " + output);
+
 
          Log.d(LOG_TAG, "appWidgetId = " + appWidgetId);
 
@@ -76,6 +98,7 @@ public class AppWidget extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.appwidget_text_upd,   getPendingSelfIntent(context, SYNC_CLICKED, appWidgetId));
 
         views.setOnClickPendingIntent(R.id.textTitle,   getPendingSelfIntent(context, SYNC_OPEN, appWidgetId));
+
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
@@ -100,7 +123,7 @@ public class AppWidget extends AppWidgetProvider {
 
         //обновление всех экземпляров виджета
         for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, sp, appWidgetId);
+            updateAppWidget(context, appWidgetManager.getInstance(context), appWidgetId);
         }
     }
 
@@ -123,7 +146,6 @@ public class AppWidget extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
 
         super.onReceive(context, intent);
-
 
         //check internet connection before
         if ( !isOnline(context) )
@@ -191,10 +213,14 @@ public class AppWidget extends AppWidgetProvider {
                     appWidgetManager.updateAppWidget(watchWidget, remoteViews);
                     return;
                 }
+                SharedPreferences.Editor editor = sp.edit();
+                editor.putString(ConfigActivity.WIDGET_TEXT + widgetID, output);
+                editor.commit();
                 //Обновляем экран с полученными данными
-                remoteViews.setTextViewText(R.id.appwidget_text, output);
+                //remoteViews.setTextViewText(R.id.appwidget_text, output);
                 //widget manager to update the widget
-                appWidgetManager.updateAppWidget(watchWidget, remoteViews);
+                //appWidgetManager.updateAppWidget(watchWidget, remoteViews);
+                updateAppWidget(context, appWidgetManager.getInstance(context), widgetID);
         }
 
         if (SYNC_OPEN.equals(intent.getAction())) {
@@ -253,7 +279,7 @@ public class AppWidget extends AppWidgetProvider {
         SharedPreferences.Editor editor = context.getSharedPreferences(
                 ConfigActivity.WIDGET_PREF, Context.MODE_PRIVATE).edit();
         for (int widgetID : appWidgetIds) {
-            //editor.remove(ConfigActivity.WIDGET_TEXT + widgetID);
+            editor.remove(ConfigActivity.WIDGET_TEXT + widgetID);
             editor.remove(ConfigActivity.ID_PREF + widgetID);
         }
         editor.commit();

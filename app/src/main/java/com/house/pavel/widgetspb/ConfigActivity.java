@@ -22,6 +22,7 @@ public class ConfigActivity extends Activity {
     public final static String WIDGET_TEXT = "widget_text_";
     public final static String WIDGET_COLOR = "widget_color_";
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,7 +57,7 @@ public class ConfigActivity extends Activity {
         // Записываем значения с экрана в Preferences
         SharedPreferences sp = getSharedPreferences(WIDGET_PREF, MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
-        //editor.putString(WIDGET_TEXT + widgetID, etText.getText().toString());
+        editor.putString(WIDGET_TEXT + widgetID, "-/-");
         editor.putString(ID_PREF + widgetID, etText.getText().toString());
         // editor.putInt(WIDGET_COLOR + widgetID, color);
         editor.commit();
@@ -67,7 +68,7 @@ public class ConfigActivity extends Activity {
 
 
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
-        AppWidget.updateAppWidget(this, appWidgetManager, sp, widgetID);
+        AppWidget.updateAppWidget(this, appWidgetManager, widgetID);
 
         Log.d(LOG_TAG, "finish config " + widgetID);
         finish();
