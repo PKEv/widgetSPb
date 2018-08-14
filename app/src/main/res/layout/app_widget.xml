@@ -5,10 +5,8 @@
     android:layout_height="fill_parent"
     android:layout_margin="2dp"
     android:padding="2dp"
-
     android:background="@drawable/widget"
     android:layout_gravity="center"
-
     android:orientation="vertical">
 
     <TextView
@@ -47,9 +45,4 @@
             android:textColor="#ffffff"
             android:textSize="8sp"
             android:textStyle="italic" />
-
-
-
-    //android:background="#09C"
-    //app:srcCompat="@drawable/ospb"
 </LinearLayout>

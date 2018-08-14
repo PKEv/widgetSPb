@@ -29,8 +29,6 @@ public class AppWidget extends AppWidgetProvider {
     private static final String ERROR_MESSAGE = "Ошибка!";
     private static final String APPPackageName = "ru.spb.iac.ourspb";
     public static final int httpsDelayMs = 300;
-    //private String ID    = "123123123";
-
 
      static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         Log.d(LOG_TAG, "updateAppWidget4");
@@ -52,7 +50,6 @@ public class AppWidget extends AppWidgetProvider {
 
         String output = "-/-";
 
-
          //check internet connection before
          if ( !isOnline(context) )
          {
@@ -71,12 +68,10 @@ public class AppWidget extends AppWidgetProvider {
                          break;
                      }
                  }
-
              } catch (Exception e) {
                  output = e.toString();
              }
          }
-
 
          // в случае отсутствия связи
          if (!output.isEmpty()) {
@@ -86,11 +81,9 @@ public class AppWidget extends AppWidgetProvider {
          }
 
         //write to widget
-       //
          output = sp.getString(ConfigActivity.WIDGET_TEXT + appWidgetId, null);
          views.setTextViewText(R.id.appwidget_text, output);
          Log.d(LOG_TAG, "Write to sp:" + ConfigActivity.WIDGET_TEXT + Integer.toString(appWidgetId) + " =  " + output);
-
 
          Log.d(LOG_TAG, "appWidgetId = " + appWidgetId);
 
@@ -98,7 +91,6 @@ public class AppWidget extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.appwidget_text_upd,   getPendingSelfIntent(context, SYNC_CLICKED, appWidgetId));
 
         views.setOnClickPendingIntent(R.id.textTitle,   getPendingSelfIntent(context, SYNC_OPEN, appWidgetId));
-
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
@@ -144,7 +136,6 @@ public class AppWidget extends AppWidgetProvider {
     //запускает обновление виджета
     @Override
     public void onReceive(Context context, Intent intent) {
-
         super.onReceive(context, intent);
 
         //check internet connection before
@@ -158,69 +149,64 @@ public class AppWidget extends AppWidgetProvider {
 
         //filtering events
         if (SYNC_CLICKED.equals(intent.getAction())) {
-                // извлекаем ID экземпляра
-                int widgetID = AppWidgetManager.INVALID_APPWIDGET_ID;
-                Log.d(LOG_TAG, "SYNC_CLICKED");
+            // извлекаем ID экземпляра
+            int widgetID = AppWidgetManager.INVALID_APPWIDGET_ID;
+            Log.d(LOG_TAG, "SYNC_CLICKED");
 
-                Bundle extras = intent.getExtras();
-                if (extras != null) {
-                    widgetID = extras.getInt(
-                            AppWidgetManager.EXTRA_APPWIDGET_ID,
-                            AppWidgetManager.INVALID_APPWIDGET_ID);
+            Bundle extras = intent.getExtras();
+            if (extras != null) {
+                widgetID = extras.getInt(
+                        AppWidgetManager.EXTRA_APPWIDGET_ID,
+                        AppWidgetManager.INVALID_APPWIDGET_ID);
 
-                }
-                Log.d(LOG_TAG, "widgetID = " + Integer.toString(widgetID));
+            }
+            Log.d(LOG_TAG, "widgetID = " + Integer.toString(widgetID));
 
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 
-                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            RemoteViews remoteViews;
+            ComponentName watchWidget;
 
-                RemoteViews remoteViews;
-                ComponentName watchWidget;
+            remoteViews = new RemoteViews(context.getPackageName(), R.layout.app_widget);
+            watchWidget = new ComponentName(context, AppWidget.class);
 
-                remoteViews = new RemoteViews(context.getPackageName(), R.layout.app_widget);
-                watchWidget = new ComponentName(context, AppWidget.class);
+            remoteViews.setTextViewText(R.id.appwidget_text, WAITING_MESSAGE);
 
-                remoteViews.setTextViewText(R.id.appwidget_text, WAITING_MESSAGE);
+            //updating widget
+            appWidgetManager.updateAppWidget(watchWidget, remoteViews);
 
-                //updating widget
-                appWidgetManager.updateAppWidget(watchWidget, remoteViews);
+            SharedPreferences sp = context.getSharedPreferences(
+                    ConfigActivity.WIDGET_PREF, Context.MODE_PRIVATE);
+            String spb_id = sp.getString(ConfigActivity.ID_PREF + widgetID, null);
 
-                SharedPreferences sp = context.getSharedPreferences(
-                        ConfigActivity.WIDGET_PREF, Context.MODE_PRIVATE);
-                String spb_id = sp.getString(ConfigActivity.ID_PREF + widgetID, null);
+            Log.d(LOG_TAG, "spb_id = " + spb_id);
 
-                Log.d(LOG_TAG, "spb_id = " + spb_id);
-
-                String output;
-                MyTask thread = new MyTask(spb_id);
-                thread.start();
-                try {
-                    while (true) {
-                        Thread.sleep(httpsDelayMs);
-                        if (!thread.isAlive()) {
-                            output = thread.getInfoString();
-                            break;
-                        }
+            String output;
+            MyTask thread = new MyTask(spb_id);
+            thread.start();
+            try {
+                while (true) {
+                    Thread.sleep(httpsDelayMs);
+                    if (!thread.isAlive()) {
+                        output = thread.getInfoString();
+                        break;
                     }
-                } catch (Exception e) {
-                    output = e.toString();
-
                 }
+            } catch (Exception e) {
+                output = e.toString();
+            }
 
-                // в случае отсутствия связи
-                if (output.isEmpty()) {
-                    remoteViews.setTextViewText(R.id.appwidget_text, ERROR_MESSAGE);
-                    appWidgetManager.updateAppWidget(watchWidget, remoteViews);
-                    return;
-                }
-                SharedPreferences.Editor editor = sp.edit();
-                editor.putString(ConfigActivity.WIDGET_TEXT + widgetID, output);
-                editor.commit();
-                //Обновляем экран с полученными данными
-                //remoteViews.setTextViewText(R.id.appwidget_text, output);
-                //widget manager to update the widget
-                //appWidgetManager.updateAppWidget(watchWidget, remoteViews);
-                updateAppWidget(context, appWidgetManager.getInstance(context), widgetID);
+            // в случае отсутствия связи
+            if (output.isEmpty()) {
+                remoteViews.setTextViewText(R.id.appwidget_text, ERROR_MESSAGE);
+                appWidgetManager.updateAppWidget(watchWidget, remoteViews);
+                return;
+            }
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString(ConfigActivity.WIDGET_TEXT + widgetID, output);
+            editor.commit();
+            //Обновляем экран с полученными данными
+            updateAppWidget(context, appWidgetManager.getInstance(context), widgetID);
         }
 
         if (SYNC_OPEN.equals(intent.getAction())) {
@@ -237,8 +223,8 @@ public class AppWidget extends AppWidgetProvider {
                     intent.setData(Uri.parse("market://details?id=" + APPPackageName));
 
                     context.startActivity(intent);
-
-                } catch (android.content.ActivityNotFoundException anfe) {
+                }
+                catch (android.content.ActivityNotFoundException anfe) {
 
                     intent = new Intent(Intent.ACTION_VIEW);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

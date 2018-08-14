@@ -15,13 +15,12 @@ public class ConfigActivity extends Activity {
     int widgetID = AppWidgetManager.INVALID_APPWIDGET_ID;
     Intent resultValue;
 
-    final String LOG_TAG = "myLogs";
+    final static String LOG_TAG = "myLogs";
 
     public final static String WIDGET_PREF = "widget_pref";
     public final static String ID_PREF = "id_pref";
     public final static String WIDGET_TEXT = "widget_text_";
     public final static String WIDGET_COLOR = "widget_color_";
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,5 +72,4 @@ public class ConfigActivity extends Activity {
         Log.d(LOG_TAG, "finish config " + widgetID);
         finish();
     }
-
 }
